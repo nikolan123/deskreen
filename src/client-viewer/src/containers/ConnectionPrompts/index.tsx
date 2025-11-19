@@ -2,10 +2,8 @@ import { Row, Col } from 'react-flexbox-grid';
 import { useTranslation } from 'react-i18next';
 import { LIGHT_UI_BACKGROUND } from '../../constants/styleConstants';
 import MyDeviceInfoCard from '../../components/MyDeviceInfoCard';
-import type {TFunction} from 'i18next';
+import type { TFunction } from 'i18next';
 import { Button, H3 } from '@blueprintjs/core';
-import ConnectingIndicator from '../../components/ConnectingIndicator';
-import DeskreenLogo from '../../images/deskreen_logo_128x128.png';
 
 interface ConnectionPropmptsProps {
   myDeviceDetails: DeviceDetails;
@@ -21,9 +19,7 @@ function getPromptContent(t: TFunction, step: number) {
     case 1:
       return (
         <H3>
-          {t(
-            'Waiting for user to click ALLOW button on screen sharing device...'
-          ) as string}
+          Please accept the connection request on the screen sharing device.
         </H3>
       );
     case 2:
@@ -31,9 +27,7 @@ function getPromptContent(t: TFunction, step: number) {
     case 3:
       return (
         <H3>
-          {t(
-            'Waiting for user to select source to share from screen sharing device...'
-          ) as string}
+          Please select the source to share from the screen sharing device.
         </H3>
       );
     default:
@@ -44,93 +38,66 @@ function getPromptContent(t: TFunction, step: number) {
 function ConnectionPropmpts(props: ConnectionPropmptsProps) {
   const {
     myDeviceDetails,
-    promptStep,
-    connectionIconType,
-    isShownSpinnerIcon,
-    spinnerIconType,
+    promptStep
   } = props;
 
   const { t } = useTranslation();
 
-	const handleReinitiateConnection = () => {
-		window.location.reload();
-	};
+  const handleReinitiateConnection = () => {
+    window.location.reload();
+  };
 
   return (
+    <div
+      style={{
+        position: 'absolute',
+        zIndex: 10,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100vh',
+        boxShadow: '0 0 0 5px #A7B6C2',
+        backgroundColor: LIGHT_UI_BACKGROUND,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <div
         style={{
-          position: 'absolute',
-          zIndex: 10,
-          top: 0,
-          left: 0,
+          maxWidth: '800px',
           width: '100%',
-          height: '100vh',
-          boxShadow: '0 0 0 5px #A7B6C2',
-          backgroundColor: LIGHT_UI_BACKGROUND,
+          padding: '20px',
+          textAlign: 'center',
         }}
       >
-        <Row
-          bottom="xs"
-          style={{
-            height: '50vh',
-            width: '100%',
-            marginRight: '0px',
-            marginLeft: '0px',
-          }}
-        >
-          <Row center="xs" style={{width: '100%', margin: '0 auto'}}>
-            <Col
-              xs={12}
-              style={{
-                marginBottom: '50px',
-                textAlign: 'center',
-                width: '100%',
-              }}
-            >
-              <div style={{width: '100%'}}>
-                <Row center="xs" style={{marginTop: '30px', marginBottom: '10px'}}>
-                  <img
-                    src={DeskreenLogo}
-                    alt="Deskreen Logo"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      marginBottom: '5px',
-                    }}
-                  />
-                </Row>
-                <Row center="xs">
-                  <H3>Deskreen CE Viewer</H3>
-                </Row>
-                <Row center="xs" style={{width: '100%', margin: '0 auto'}}>
-                  <Col md={6} xl={4}>
-                    <MyDeviceInfoCard deviceDetails={myDeviceDetails}/>
-                  </Col>
-                </Row>
-                <div id="prompt-text" style={{fontSize: '20px'}}>
-                  {getPromptContent(t, promptStep)}
-                </div>
-			<Row center="xs" style={{marginTop: '20px'}}>
-				<Button
-					className="rounded-pill-button"
-					intent="warning"
-					onClick={handleReinitiateConnection}
-				>
-					{t('re-initiate-connection') as string}
-				</Button>
-			</Row>
-              </div>
-            </Col>
-          </Row>
+        {/* Header */}
+        <H3 style={{ marginBottom: '30px' }}>Web Viewer</H3>
+
+        {/* Status Message */}
+        <div style={{ fontSize: '20px', marginBottom: '30px' }}>
+          {getPromptContent(t, promptStep)}
+        </div>
+
+        {/* Device Info Card */}
+        <Row center="xs" style={{ marginBottom: '30px' }}>
+          <Col md={8} lg={6}>
+            <MyDeviceInfoCard deviceDetails={myDeviceDetails} />
+          </Col>
         </Row>
-        <ConnectingIndicator
-          currentStep={promptStep}
-          connectionIconType={connectionIconType}
-          isShownSelectingSharingIcon={isShownSpinnerIcon}
-          selectingSharingIconType={spinnerIconType}
-        />
+
+        {/* Restart Button */}
+        <Button
+          className="rounded-pill-button"
+          intent="warning"
+          onClick={handleReinitiateConnection}
+          large
+        >
+          Restart Connection
+        </Button>
       </div>
-    );
+    </div>
+  );
 }
 
 export default ConnectionPropmpts;

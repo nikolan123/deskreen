@@ -27,7 +27,7 @@ function MyDeviceInfoCard(props: MyDeviceDetailsCardProps) {
         marginBottom: '30px',
       }}
     >
-      <H3>{`${t('My Device Info')}:`}</H3>
+      <H3>This device</H3>
       <Callout>
         <Text>{`${t('Device Type')}: ${myDeviceType}`}</Text>
         <Tooltip
@@ -48,7 +48,7 @@ function MyDeviceInfoCard(props: MyDeviceDetailsCardProps) {
         </Tooltip>
         <Text>{`${t('Device Browser')}: ${myBrowser}`}</Text>
         <Text>{`${t('Device OS')}: ${myOS}`}</Text>
-        <Text>{`${t('My Current Connection ID')}: ${myRoomId}`}</Text>
+        <Text>{`${t('Current Connection ID')}: ${myRoomId}`}</Text>
       </Callout>
       <Text className="bp3-text-muted">
         {t('These details should match with the ones that you see in alert popup on computer screen, where Deskreen-CE is running')}
