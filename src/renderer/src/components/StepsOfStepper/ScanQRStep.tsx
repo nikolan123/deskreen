@@ -207,13 +207,6 @@ const ScanQRStep: React.FC = () => {
                         level="H"
                         bgColor="rgba(0,0,0,0.0)"
                         fgColor="#000000"
-                        imageSettings={{
-                          // src: `http://127.0.0.1${portString}/logo192.png`,
-                          src: Logo192,
-                          width: 40,
-                          height: 40,
-                          excavate: true,
-                        }}
                       />
                     </Button>
                   ) : (
@@ -325,13 +318,6 @@ const ScanQRStep: React.FC = () => {
             <QRCodeSVG
               value={isQrInteractive ? shareUrl : 'INACTIVE'}
               level="H"
-              imageSettings={{
-                // src: `http://127.0.0.1${portString}/logo192.png`,
-                src: Logo192,
-                width: 25,
-                height: 25,
-                excavate: true,
-              }}
               width="390px"
               height="390px"
             />
