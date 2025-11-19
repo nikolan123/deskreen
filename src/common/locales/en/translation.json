@@ -156,7 +156,7 @@
   "share-same-screen-to-all-devices": "Share same screen to all devices",
   "device-connection-id": "Device Connection ID",
   "fix-reset": "Fix & Reset",
-  "fix-reset-tooltip": "Fix & Reset. Having troubles connecting new clients ? Clicking this button may help you.",
+  "fix-reset-tooltip": "Fix & Reset. Having trouble connecting new clients? Clicking this button may help you.",
   "allow-connection-to-all-devices": "Allow connection to all devices",
   "share-same-screen-to-all-client-devices": "Share same screen to all client devices",
   "no-wifi-and-lan-connection": "No WiFi and LAN connection.",

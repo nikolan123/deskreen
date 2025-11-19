@@ -166,10 +166,6 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
     );
   }, []);
 
-  const handleTutorialButtonClick = React.useCallback(() => {
-    window.electron.ipcRenderer.invoke(IpcEvents.OpenExternalLink, 'https://deskreen.com/howto');
-  }, []);
-
   const handleOpenDownloadPage = React.useCallback((): void => {
     void window.electron.ipcRenderer.invoke(
       IpcEvents.OpenExternalLink,
@@ -251,20 +247,6 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
     </div>
   );
 
-  const renderTutorialButton = (
-    <div className={classes.topPanelControlButtonMargin}>
-      <Tooltip content={t('tutorial')} position={Position.BOTTOM}>
-        <Button
-          id="top-panel-tutorial-button"
-          className={classes.topPanelControlButton}
-          onClick={handleTutorialButtonClick}
-        >
-          <Icon className={classes.topPanelIconOfControlButton} icon="learning" size={22} />
-        </Button>
-      </Tooltip>
-    </div>
-  );
-
   const renderHelpButton = (
     <div className={classes.topPanelControlButtonMargin}>
       <Tooltip content={t('fix-reset-tooltip')} position={Position.BOTTOM}>
@@ -317,7 +299,6 @@ export default function TopPanel({ handleReset }: Props): React.ReactElement {
           <div className={classes.topPanelControlButtonsRoot}>
             {renderConnectedDevicesListButton}
             {renderHelpButton}
-            {renderTutorialButton}
             {renderSettingsButton}
           </div>
           {hasUpdate ? (
