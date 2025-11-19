@@ -27,158 +27,104 @@ import {
 import { handlePlayerToggleFullscreen } from './handlePlayerToggleFullscreen';
 import initScreenfullOnChange from './initScreenfullOnChange';
 import { ScreenSharingSource } from '../../features/PeerConnection/ScreenSharingSourceEnum';
-import { trackAnalyticsEvent, setConsentStatus, updateAnalyticsConsent } from '../../utils/analytics';
-import PrivacyControlDialog from '../PrivacyControlDialog';
 import './index.css';
 
 const videoQualityButtonStyle: React.CSSProperties = {
-	width: '100%',
-	display: 'flex',
-	justifyContent: 'center',
-	alignItems: 'center',
-	textAlign: 'center',
+  width: '100%',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  textAlign: 'center',
 };
 
 interface PlayerControlPanelProps {
-	onSwitchChangedCallback: (isEnabled: boolean) => void;
-	isPlaying: boolean;
-	isDefaultPlayerTurnedOn: boolean;
-	handleClickFullscreen: () => 'entered' | 'exited' | 'failed';
-	handleClickPlayPause: () => void;
-	setVideoQuality: (q: VideoQualityType) => void;
-	selectedVideoQuality: VideoQualityType;
-	screenSharingSourceType: ScreenSharingSourceType;
-	// toaster: undefined | HTMLDivElement;
+  onSwitchChangedCallback: (isEnabled: boolean) => void;
+  isPlaying: boolean;
+  isDefaultPlayerTurnedOn: boolean;
+  handleClickFullscreen: () => 'entered' | 'exited' | 'failed';
+  handleClickPlayPause: () => void;
+  setVideoQuality: (q: VideoQualityType) => void;
+  selectedVideoQuality: VideoQualityType;
+  screenSharingSourceType: ScreenSharingSourceType;
+  // toaster: undefined | HTMLDivElement;
 }
 
 function PlayerControlPanel(props: PlayerControlPanelProps) {
   const { t } = useTranslation();
-	const {
-		onSwitchChangedCallback,
-		isPlaying,
-		isDefaultPlayerTurnedOn,
-		handleClickPlayPause,
-		handleClickFullscreen,
-		selectedVideoQuality,
-		setVideoQuality,
-		screenSharingSourceType,
-	} = props;
+  const {
+    onSwitchChangedCallback,
+    isPlaying,
+    isDefaultPlayerTurnedOn,
+    handleClickPlayPause,
+    handleClickFullscreen,
+    selectedVideoQuality,
+    setVideoQuality,
+    screenSharingSourceType,
+  } = props;
 
   const isFullScreenAPIAvailable = screenfull.isEnabled;
 
   const [isFullScreenOn, setIsFullScreenOn] = useState(false);
-  const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
 
-	useEffect(() => {
-		const cleanup = initScreenfullOnChange(setIsFullScreenOn);
-		return cleanup;
-	}, []);
+  useEffect(() => {
+    const cleanup = initScreenfullOnChange(setIsFullScreenOn);
+    return cleanup;
+  }, []);
 
-	const handleClickFullscreenWhenDefaultPlayerIsOn = useCallback(() => {
-		const result = handlePlayerToggleFullscreen();
-		if (result === 'failed') {
-			console.warn('Unable to toggle fullscreen');
-			return result;
-		}
-		setIsFullScreenOn(result === 'entered');
-		return result;
-	}, [setIsFullScreenOn]);
+  const handleClickFullscreenWhenDefaultPlayerIsOn = useCallback(() => {
+    const result = handlePlayerToggleFullscreen();
+    if (result === 'failed') {
+      console.warn('Unable to toggle fullscreen');
+      return result;
+    }
+    setIsFullScreenOn(result === 'entered');
+    return result;
+  }, [setIsFullScreenOn]);
 
-	const handleLogoClick = useCallback(() => {
-		trackAnalyticsEvent('logo_clicked', {
-			destination: 'https://deskreen.com'
-		});
-		window.open('https://deskreen.com', '_blank');
-	}, []);
+  const handleLogoClick = useCallback(() => {
+    window.open('https://deskreen.com', '_blank');
+  }, []);
 
-	const handleContributeClick = useCallback(() => {
-		trackAnalyticsEvent('contribute_clicked', {
-			destination: 'https://deskreen.com/#contribute'
-		});
-		window.open('https://deskreen.com/#contribute', '_blank');
-	}, []);
+  const handleContributeClick = useCallback(() => {
+    window.open('https://deskreen.com/#contribute', '_blank');
+  }, []);
 
-	const handlePlayPauseClick = useCallback(() => {
-		const nextAction = isPlaying ? 'pause' : 'play';
-		trackAnalyticsEvent(nextAction === 'play' ? 'play_button_clicked' : 'pause_button_clicked', {
-			target_state: nextAction === 'play' ? 'playing' : 'paused'
-		});
-		handleClickPlayPause();
-	}, [handleClickPlayPause, isPlaying]);
+  const handlePlayPauseClick = useCallback(() => {
+    handleClickPlayPause();
+  }, [handleClickPlayPause]);
 
-	const handleVideoQualitySelect = useCallback(
-		(quality: VideoQualityType) => {
-			if (selectedVideoQuality !== quality) {
-				trackAnalyticsEvent('video_quality_selected', {
-					quality
-				});
-			}
-			setVideoQuality(quality);
-		},
-		[selectedVideoQuality, setVideoQuality]
-	);
+  const handleVideoQualitySelect = useCallback(
+    (quality: VideoQualityType) => {
+      setVideoQuality(quality);
+    },
+    [setVideoQuality]
+  );
 
-	const handleDefaultPlayerToggle = useCallback(() => {
-		const nextState = !isDefaultPlayerTurnedOn;
-		trackAnalyticsEvent('default_player_toggled', {
-			state: nextState ? 'on' : 'off'
-		});
-		onSwitchChangedCallback(nextState);
-	}, [isDefaultPlayerTurnedOn, onSwitchChangedCallback]);
+  const handleDefaultPlayerToggle = useCallback(() => {
+    const nextState = !isDefaultPlayerTurnedOn;
+    onSwitchChangedCallback(nextState);
+  }, [isDefaultPlayerTurnedOn, onSwitchChangedCallback]);
 
-	const handleFullscreenClick = useCallback(() => {
-		const result = isDefaultPlayerTurnedOn
-			? handleClickFullscreenWhenDefaultPlayerIsOn()
-			: handleClickFullscreen();
-		if (result === 'failed') {
-			trackAnalyticsEvent('fullscreen_toggle_failed', {
-				player_mode: isDefaultPlayerTurnedOn ? 'default' : 'custom'
-			});
-			return;
-		}
-		trackAnalyticsEvent('fullscreen_toggled', {
-			state: result === 'entered' ? 'on' : 'off',
-			player_mode: isDefaultPlayerTurnedOn ? 'default' : 'custom'
-		});
-	}, [handleClickFullscreen, handleClickFullscreenWhenDefaultPlayerIsOn, isDefaultPlayerTurnedOn]);
-
-	const handlePrivacyControlClick = useCallback(() => {
-		setIsPrivacyDialogOpen(true);
-	}, []);
-
-	const handlePrivacyDialogClose = useCallback(() => {
-		setIsPrivacyDialogOpen(false);
-	}, []);
-
-	const handlePrivacyAccept = useCallback(() => {
-		setConsentStatus('accepted');
-		updateAnalyticsConsent('accepted');
-		setIsPrivacyDialogOpen(false);
-	}, []);
-
-	const handlePrivacyOptOut = useCallback(() => {
-		setConsentStatus('opted-out');
-		updateAnalyticsConsent('opted-out');
-		setIsPrivacyDialogOpen(false);
-	}, []);
+  const handleFullscreenClick = useCallback(() => {
+    const result = isDefaultPlayerTurnedOn
+      ? handleClickFullscreenWhenDefaultPlayerIsOn()
+      : handleClickFullscreen();
+    if (result === 'failed') {
+      return;
+    }
+  }, [handleClickFullscreen, handleClickFullscreenWhenDefaultPlayerIsOn, isDefaultPlayerTurnedOn]);
 
   return (
     <>
-      <PrivacyControlDialog
-        isOpen={isPrivacyDialogOpen}
-        onClose={handlePrivacyDialogClose}
-        onAccept={handlePrivacyAccept}
-        onOptOut={handlePrivacyOptOut}
-      />
       <Card elevation={4}>
         <Row between='xs' middle='xs'>
           <Col xs={12} md={3}>
             <Row middle='xs' start='xs'>
               <Col xs>
                 <Tooltip content={t('Click to visit our website')} position={Position.BOTTOM}>
-					<Button
-						minimal
-						onClick={handleLogoClick}
+                  <Button
+                    minimal
+                    onClick={handleLogoClick}
                   >
                     <Row middle='xs'>
                       <img
@@ -198,19 +144,19 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                   )}
                   position={Position.BOTTOM}
                 >
-					<Button
-						style={{
-							borderRadius: '100px',
-							marginLeft: '8px',
-							padding: '8px 18px',
-							minHeight: '36px',
-							background: 'linear-gradient(135deg, hsl(258, 90%, 66%) 0%, hsl(210, 96%, 62%) 30%, hsl(192, 94%, 44%) 70%, hsl(28, 96%, 58%) 100%)',
-							border: 'none',
-							boxShadow:
-								'0 4px 12px rgba(102, 51, 204, 0.4), 0 2px 4px rgba(102, 51, 204, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-							transition: 'all 0.2s ease',
-						}}
-						onClick={handleContributeClick}
+                  <Button
+                    style={{
+                      borderRadius: '100px',
+                      marginLeft: '8px',
+                      padding: '8px 18px',
+                      minHeight: '36px',
+                      background: 'linear-gradient(135deg, hsl(258, 90%, 66%) 0%, hsl(210, 96%, 62%) 30%, hsl(192, 94%, 44%) 70%, hsl(28, 96%, 58%) 100%)',
+                      border: 'none',
+                      boxShadow:
+                        '0 4px 12px rgba(102, 51, 204, 0.4), 0 2px 4px rgba(102, 51, 204, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onClick={handleContributeClick}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-1px)';
                       e.currentTarget.style.boxShadow =
@@ -273,7 +219,7 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                 <Row style={{ width: '100%' }} middle='xs' center='xs'>
                   <Button
                     minimal
-						onClick={handlePlayPauseClick}
+                    onClick={handlePlayPauseClick}
                     style={{
                       width: '85px',
                       minWidth: '70px',
@@ -284,8 +230,8 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                       <Col xs>
                         <Icon icon={isPlaying ? 'pause' : 'play'} color='white' />
                       </Col>
-					<Col xs>
-						<Text className='bp3-text-large play-pause-text'>
+                      <Col xs>
+                        <Text className='bp3-text-large play-pause-text'>
                           {isPlaying ? t('Pause') : t('Play')}
                         </Text>
                       </Col>
@@ -328,16 +274,16 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                                 active={selectedVideoQuality === q}
                                 style={videoQualityButtonStyle}
                                 disabled={screenSharingSourceType === ScreenSharingSource.WINDOW}
-									onClick={() => {
-										handleVideoQualitySelect(q);
-										// toaster?.show({
-										//   icon: 'clean',
-										//   intent: Intent.PRIMARY,
-										//   message: `${t(
-										//     'Video quality has been changed to'
-										//   )} ${q}`,
-										// });
-									}}
+                                onClick={() => {
+                                  handleVideoQualitySelect(q);
+                                  // toaster?.show({
+                                  //   icon: 'clean',
+                                  //   intent: Intent.PRIMARY,
+                                  //   message: `${t(
+                                  //     'Video quality has been changed to'
+                                  //   )} ${q}`,
+                                  // });
+                                }}
                               >
                                 {q}
                               </Button>
@@ -367,9 +313,9 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                     content={t('Click to Enter Full Screen Mode')}
                     position={Position.BOTTOM}
                   >
-					<Button
-						minimal
-						onClick={handleFullscreenClick}
+                    <Button
+                      minimal
+                      onClick={handleFullscreenClick}
                     >
                       <img
                         src={isFullScreenOn ? FullScreenExit : FullScreenEnter}
@@ -391,8 +337,8 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
           <Col xs={12} md={3}>
             <Row end='xs'>
               <Col xs={12}>
-			<Switch
-				onChange={handleDefaultPlayerToggle}
+                <Switch
+                  onChange={handleDefaultPlayerToggle}
                   innerLabel={isDefaultPlayerTurnedOn ? t('ON') : t('OFF')}
                   inline
                   label={t('Default Video Player')}
@@ -403,18 +349,6 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                     marginBottom: '12px',
                   }}
                 />
-				<Button
-					minimal
-					icon="shield"
-					onClick={handlePrivacyControlClick}
-					style={{
-						width: 'fit-content',
-						marginLeft: 'auto',
-						color: '#5C7080',
-					}}
-				>
-					{t('Privacy Settings')}
-				</Button>
               </Col>
             </Row>
           </Col>

@@ -17,7 +17,7 @@ import handleDisplayingLoadingSharingIconLoop from './handleDisplayingLoadingSha
 import { ScreenSharingSource } from '../../features/PeerConnection/ScreenSharingSourceEnum';
 import ConnectionIcon from './ConnectionIconEnum';
 import { LoadingSharingIconEnum } from './LoadingSharingIconEnum';
-import { useScreenViewingTracker } from './useScreenViewingTracker';
+
 
 function MainView() {
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
@@ -33,7 +33,7 @@ function MainView() {
     DUMMY_MY_DEVICE_DETAILS
   );
 
-	const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(true);
   const [url, setUrl] = useState<undefined | MediaStream>(undefined);
   const [screenSharingSourceType, setScreenSharingSourceType] = useState<
     ScreenSharingSourceType
@@ -107,12 +107,7 @@ function MainView() {
     [promptStep, url]
   );
 
-  useScreenViewingTracker({
-    streamUrl: url,
-    isPlaying: playing,
-    isErrorDialogOpen,
-    dialogErrorMessage,
-  });
+
 
   return (
     <Grid>
@@ -124,16 +119,16 @@ function MainView() {
         spinnerIconType={loadingSharingIconType}
         isShownSpinnerIcon={isShownLoadingSharingIcon}
       />
-		<PlayerView
-			streamUrl={url}
-			screenSharingSourceType={screenSharingSourceType}
-			setIsWithControls={setIsWithControls}
-			isWithControls={isWithControls}
-			handlePlayPause={handlePlayPause}
-			isPlaying={playing}
-			setVideoQuality={setVideoQuality}
-			videoQuality={videoQuality}
-		/>
+      <PlayerView
+        streamUrl={url}
+        screenSharingSourceType={screenSharingSourceType}
+        setIsWithControls={setIsWithControls}
+        isWithControls={isWithControls}
+        handlePlayPause={handlePlayPause}
+        isPlaying={playing}
+        setVideoQuality={setVideoQuality}
+        videoQuality={videoQuality}
+      />
       <ErrorDialog
         errorMessage={dialogErrorMessage}
         isOpen={isErrorDialogOpen}
