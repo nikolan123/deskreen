@@ -237,12 +237,12 @@ export default function ChooseAppOrScreenOverlay(props: ChooseAppOrScreenOverlay
                   <PreviewGridList
                     viewSharingIds={viewSharingIds}
                     isEntireScreen={isEntireScreenToShareChosen}
-                    handleNextEntireScreen={() => {
-                      handleNextEntireScreen();
+                    handleNextEntireScreen={async () => {
+                      await handleNextEntireScreen();
                       handleClose();
                     }}
-                    handleNextApplicationWindow={() => {
-                      handleNextApplicationWindow();
+                    handleNextApplicationWindow={async () => {
+                      await handleNextApplicationWindow();
                       handleClose();
                     }}
                   />

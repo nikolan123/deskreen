@@ -221,7 +221,7 @@ const ScanQRStep: React.FC = () => {
       </div>
       <Row
         style={{
-          marginBottom: '10px',
+          margin: '10px',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',

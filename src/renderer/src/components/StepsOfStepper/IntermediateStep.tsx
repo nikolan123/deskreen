@@ -90,8 +90,8 @@ export default function IntermediateStep(props: IntermediateStepProps): React.Re
         connectedDevice,
       )}
       {process.env.NODE_ENV === 'production' &&
-      process.env.RUN_MODE !== 'dev' &&
-      process.env.RUN_MODE !== 'test' ? (
+        process.env.RUN_MODE !== 'dev' &&
+        process.env.RUN_MODE !== 'test' ? (
         <></>
       ) : activeStep === 0 ? (
         <Button
@@ -117,9 +117,7 @@ export default function IntermediateStep(props: IntermediateStepProps): React.Re
                   resetPendingConnectionDevice();
                   resetUserAllowedConnection();
                 }
-                setTimeout(() => {
-                  handleReset();
-                }, 1000);
+                handleReset();
               }}
               style={{
                 display: activeStep === 1 ? 'none' : 'inline',
