@@ -3,7 +3,6 @@ import { Button, Text, Tooltip, Position, Dialog, Classes, H3 } from '@blueprint
 import { QRCodeSVG } from 'qrcode.react';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { Row, Col } from 'react-flexbox-grid';
-import isProduction from '../../../../common/isProduction';
 import config from '../../../../common/config';
 import { IpcEvents } from '../../../../common/IpcEvents.enum';
 import { useTranslation } from 'react-i18next';
@@ -301,7 +300,7 @@ const ScanQRStep: React.FC = () => {
         onClose={() => setIsQRCodeMagnified(false)}
         canEscapeKeyClose
         canOutsideClickClose
-        transitionDuration={isProduction() ? 700 : 0}
+        transitionDuration={0}
         style={{ position: 'relative', top: '0px' }}
         usePortal={false}
       >
