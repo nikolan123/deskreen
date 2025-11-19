@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VideoJSPlayer from '../../components/VideoJSPlayer';
 import PlayerControlPanel from '../../components/PlayerControlPanel';
 import { COMPARISON_CANVAS_ID, PLAYER_WRAPPER_ID } from '../../constants/appConstants';
@@ -6,14 +6,14 @@ import { type VideoQualityType } from '../../features/VideoAutoQualityOptimizer/
 import { togglePlayerFullscreen } from '../../utils/playerFullscreen';
 
 interface PlayerViewProps {
-	isWithControls: boolean;
-	setIsWithControls: (_: boolean) => void;
-	handlePlayPause: () => void;
-	isPlaying: boolean;
-	setVideoQuality: (_: VideoQualityType) => void;
-	videoQuality: VideoQualityType;
-	screenSharingSourceType: ScreenSharingSourceType;
-	streamUrl: undefined | MediaStream;
+  isWithControls: boolean;
+  setIsWithControls: (_: boolean) => void;
+  handlePlayPause: () => void;
+  isPlaying: boolean;
+  setVideoQuality: (_: VideoQualityType) => void;
+  videoQuality: VideoQualityType;
+  screenSharingSourceType: ScreenSharingSourceType;
+  streamUrl: undefined | MediaStream;
 }
 
 function PlayerView(props: PlayerViewProps) {
@@ -29,6 +29,7 @@ function PlayerView(props: PlayerViewProps) {
   } = props;
 
   // const player = useRef(null);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   // no external player ref needed for video.js variant
@@ -89,17 +90,19 @@ function PlayerView(props: PlayerViewProps) {
         onSwitchChangedCallback={(isEnabled) => setIsWithControls(isEnabled)}
         isDefaultPlayerTurnedOn={isWithControls}
         handleClickFullscreen={() => {
-				const result = togglePlayerFullscreen();
-				if (result === 'failed') {
-					console.warn('Unable to toggle fullscreen');
-				}
-				return result;
+          const result = togglePlayerFullscreen();
+          if (result === 'failed') {
+            console.warn('Unable to toggle fullscreen');
+          }
+          return result;
         }}
         handleClickPlayPause={handlePlayPause}
         isPlaying={isPlaying}
         setVideoQuality={setVideoQuality}
         selectedVideoQuality={videoQuality}
         screenSharingSourceType={screenSharingSourceType}
+        isFlipped={isFlipped}
+        toggleFlip={() => setIsFlipped(!isFlipped)}
       />
       <div
         id='video-container'
@@ -121,6 +124,7 @@ function PlayerView(props: PlayerViewProps) {
             width: '100%',
             height: '100%',
             backgroundColor: 'black',
+            transform: isFlipped ? 'scaleX(-1)' : 'none',
           }}
         >
           {isWithControls ? (

@@ -44,6 +44,8 @@ interface PlayerControlPanelProps {
   setVideoQuality: (q: VideoQualityType) => void;
   selectedVideoQuality: VideoQualityType;
   screenSharingSourceType: ScreenSharingSourceType;
+  isFlipped: boolean;
+  toggleFlip: () => void;
   // toaster: undefined | HTMLDivElement;
 }
 
@@ -58,6 +60,8 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
     selectedVideoQuality,
     setVideoQuality,
     screenSharingSourceType,
+    isFlipped,
+    toggleFlip,
   } = props;
 
   const isFullScreenAPIAvailable = screenfull.isEnabled;
@@ -165,13 +169,14 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                         <Row style={{
                           justifyContent: 'center',
                         }}>
-                          <Tooltip position={Position.TOP}>
+                          <Tooltip content={t('Flip Screen')} position={Position.TOP}>
                             <span style={{ display: 'block', width: '100%', textAlign: 'center' }}>
                               <Button
                                 icon='key-tab'
                                 minimal
                                 style={videoQualityButtonStyle}
-                                disabled={true}
+                                onClick={toggleFlip}
+                                active={isFlipped}
                               >
                                 {t('Flip')}
                               </Button>
