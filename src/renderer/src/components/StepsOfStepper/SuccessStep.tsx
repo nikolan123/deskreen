@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React from 'react';
 import { Button, H5, Icon, Text } from '@blueprintjs/core';
 import { Row, Col } from 'react-flexbox-grid';
 import { useTranslation } from 'react-i18next';
@@ -9,30 +9,6 @@ interface SuccessStepProps {
 
 const SuccessStep: React.FC<SuccessStepProps> = (props: SuccessStepProps) => {
   const { t } = useTranslation();
-
-  useEffect(() => {
-    document
-      .querySelector('#top-panel-connected-devices-list-button')
-      ?.classList.remove('pulse-not-infinite');
-
-    document
-      .querySelector('#top-panel-connected-devices-list-button')
-      ?.classList.add('pulse-not-infinite');
-
-    setTimeout(() => {
-      document
-        .querySelector('#top-panel-connected-devices-list-button')
-        ?.classList.remove('pulse-not-infinite');
-    }, 4000);
-  }, []);
-
-  const handleTextConnectedListMouseEnter = useCallback(() => {
-    document.querySelector('#top-panel-connected-devices-list-button')?.classList.add('pulsing');
-  }, []);
-
-  const handleTextConnectedListMouseLeave = useCallback(() => {
-    document.querySelector('#top-panel-connected-devices-list-button')?.classList.remove('pulsing');
-  }, []);
 
   return (
     <Col
@@ -57,8 +33,6 @@ const SuccessStep: React.FC<SuccessStepProps> = (props: SuccessStepProps) => {
           </div>
           <div
             id="connected-devices-list-text-success"
-            onMouseEnter={handleTextConnectedListMouseEnter}
-            onMouseLeave={handleTextConnectedListMouseLeave}
             style={{
               marginBottom: '25px',
               textDecoration: 'underline dotted',

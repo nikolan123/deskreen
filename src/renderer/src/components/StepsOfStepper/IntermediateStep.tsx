@@ -105,8 +105,8 @@ export default function IntermediateStep(props: IntermediateStepProps): React.Re
         <></>
       )}
       {activeStep !== 0 ? (
-        <Row>
-          <Col xs={12}>
+        <Row center="xs" style={{ marginTop: '20px' }}>
+          <Col xs={12} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             <Button
               intent={activeStep === 2 ? 'success' : 'none'}
               onClick={async () => {
@@ -125,27 +125,27 @@ export default function IntermediateStep(props: IntermediateStepProps): React.Re
                 width: '300px',
                 textAlign: 'center',
               }}
-              rightIcon={isConfirmStep(activeStep, steps) ? 'small-tick' : 'chevron-right'}
+              icon={isConfirmStep(activeStep, steps) ? 'small-tick' : 'chevron-right'}
             >
               {isConfirmStep(activeStep, steps) ? t('confirm-button-text') : t('next')}
             </Button>
+            {activeStep === 2 && (
+              <Button
+                intent="danger"
+                style={{
+                  borderRadius: '100px',
+                  width: '300px',
+                }}
+                onClick={handleBack}
+                icon="chevron-left"
+                text={t('no-i-need-to-choose-other')}
+              />
+            )}
           </Col>
         </Row>
       ) : (
         <></>
       )}
-      <Row style={{ display: activeStep === 2 ? 'inline-block' : 'none' }}>
-        <Button
-          intent="danger"
-          style={{
-            marginTop: '10px',
-            borderRadius: '100px',
-          }}
-          onClick={handleBack}
-          icon="chevron-left"
-          text={t('no-i-need-to-choose-other')}
-        />
-      </Row>
     </Col>
   );
 }
