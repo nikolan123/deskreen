@@ -1,3 +1,5 @@
+# This is a private fork of Deskreen for my personal use. I will not be maintaining, providing support or anything similar.
+
 # Deskreen CE (Community Edition)
 
 ![platform](https://img.shields.io/badge/platform-Windows%20%7C%20MacOS%20%7C%20Linux-lightgrey)

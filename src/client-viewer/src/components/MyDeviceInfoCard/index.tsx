@@ -27,7 +27,7 @@ function MyDeviceInfoCard(props: MyDeviceDetailsCardProps) {
         marginBottom: '30px',
       }}
     >
-      <H3>This device</H3>
+      <H3>Device Details</H3>
       <Callout>
         <Text>{`${t('Device Type')}: ${myDeviceType}`}</Text>
         <Tooltip

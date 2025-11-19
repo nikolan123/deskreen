@@ -8,7 +8,7 @@ import Backend from 'i18next-http-backend';
 // have a look at the Quick start guide
 // for passing in lng and translations on init
 
-i18n
+const i18nPromise = i18n
   // load translation using http -> see /public/locales (i.e. https://github.com/i18next/react-i18next/tree/master/example/react/public/locales)
   // learn more: https://github.com/i18next/i18next-http-backend
   .use(Backend)
@@ -38,6 +38,12 @@ i18n
     interpolation: {
       escapeValue: false, // react already safes from xss
     },
+
+    // Wait for initial load before rendering
+    react: {
+      useSuspense: true,
+    },
   });
 
+export { i18nPromise };
 export default i18n;

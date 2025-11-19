@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { LIGHT_UI_BACKGROUND } from '../../constants/styleConstants';
 import MyDeviceInfoCard from '../../components/MyDeviceInfoCard';
 import type { TFunction } from 'i18next';
-import { Button, H3 } from '@blueprintjs/core';
+import { Button, H2, H3 } from '@blueprintjs/core';
 
 interface ConnectionPropmptsProps {
   myDeviceDetails: DeviceDetails;
@@ -19,7 +19,7 @@ function getPromptContent(t: TFunction, step: number) {
     case 1:
       return (
         <H3>
-          Please accept the connection request on the screen sharing device.
+          Accept the connection request from the host machine.
         </H3>
       );
     case 2:
@@ -27,7 +27,7 @@ function getPromptContent(t: TFunction, step: number) {
     case 3:
       return (
         <H3>
-          Please select the source to share from the screen sharing device.
+          Choose a source from the host machine.
         </H3>
       );
     default:
@@ -72,7 +72,7 @@ function ConnectionPropmpts(props: ConnectionPropmptsProps) {
         }}
       >
         {/* Header */}
-        <H3 style={{ marginBottom: '30px' }}>Web Viewer</H3>
+        <H2 style={{ marginBottom: '30px' }}>Web Viewer</H2>
 
         {/* Status Message */}
         <div style={{ fontSize: '20px', marginBottom: '30px' }}>
