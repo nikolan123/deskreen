@@ -12,13 +12,11 @@ import {
   Position,
   Popover,
   Classes,
-  H3,
 } from '@blueprintjs/core';
 import screenfull from 'screenfull';
 import { useTranslation } from 'react-i18next';
 import FullScreenEnter from '../../images/fullscreen_24px.svg';
 import FullScreenExit from '../../images/fullscreen_exit-24px.svg';
-import RedHeartTwemojiPNG from '../../images/red_heart_2764_twemoji_120x120.png';
 import { Col, Row } from 'react-flexbox-grid';
 import {
   VideoQuality,
@@ -81,14 +79,6 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
     return result;
   }, [setIsFullScreenOn]);
 
-  const handleLogoClick = useCallback(() => {
-    window.open('https://deskreen.com', '_blank');
-  }, []);
-
-  const handleContributeClick = useCallback(() => {
-    window.open('https://deskreen.com/#contribute', '_blank');
-  }, []);
-
   const handlePlayPauseClick = useCallback(() => {
     handleClickPlayPause();
   }, [handleClickPlayPause]);
@@ -116,96 +106,17 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
 
   return (
     <>
-      <Card elevation={4}>
+      <Card elevation={4} style={{ padding: '8px' }}>
         <Row between='xs' middle='xs'>
           <Col xs={12} md={3}>
             <Row middle='xs' start='xs'>
               <Col xs>
-                <Tooltip content={t('Click to visit our website')} position={Position.BOTTOM}>
-                  <Button
-                    minimal
-                    onClick={handleLogoClick}
-                  >
-                    <Row middle='xs'>
-                      <img
-                        src='/img/logo512.png'
-                        alt='logo'
-                        style={{ height: '72px', marginRight: '12px' }}
-                      />
-                      <H3 style={{ margin: 0 }}>Deskreen CE Viewer</H3>
-                    </Row>
-                  </Button>
-                </Tooltip>
-              </Col>
-              <Col xs>
-                <Tooltip
-                  content={t(
-                    'If you like Deskreen CE consider contributing financially Deskreen CE is open-source Your donations keep us motivated to make Deskreen CE even better',
-                  )}
-                  position={Position.BOTTOM}
-                >
-                  <Button
-                    style={{
-                      borderRadius: '100px',
-                      marginLeft: '8px',
-                      padding: '8px 18px',
-                      minHeight: '36px',
-                      background: 'linear-gradient(135deg, hsl(258, 90%, 66%) 0%, hsl(210, 96%, 62%) 30%, hsl(192, 94%, 44%) 70%, hsl(28, 96%, 58%) 100%)',
-                      border: 'none',
-                      boxShadow:
-                        '0 4px 12px rgba(102, 51, 204, 0.4), 0 2px 4px rgba(102, 51, 204, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onClick={handleContributeClick}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow =
-                        '0 6px 16px rgba(102, 51, 204, 0.5), 0 3px 6px rgba(102, 51, 204, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow =
-                        '0 4px 12px rgba(102, 51, 204, 0.4), 0 2px 4px rgba(102, 51, 204, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}
-                    >
-                      <img
-                        src={RedHeartTwemojiPNG}
-                        width={20}
-                        height={20}
-                        style={{
-                          display: 'block',
-                          flexShrink: 0,
-                          filter: 'brightness(1.1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
-                        }}
-                        alt='heart'
-                      />
-                      <Text
-                        style={{
-                          lineHeight: '1',
-                          whiteSpace: 'nowrap',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#ffffff',
-                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
-                        }}
-                      >
-                        {t('Donate')}
-                      </Text>
-                    </div>
-                  </Button>
-                </Tooltip>
+                <H5 style={{ margin: 0 }}>Web Viewer</H5>
               </Col>
             </Row>
           </Col>
           <Col xs={12} md={5}>
-            <Row center='xs' style={{ height: '42px' }}>
+            <Row center='xs' style={{ height: '32px' }}>
               <Row
                 center='xs'
                 middle='xs'
@@ -224,14 +135,16 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                       width: '85px',
                       minWidth: '70px',
                       color: 'white',
+                      padding: '0 5px',
+                      minHeight: '24px',
                     }}
                   >
                     <Row>
                       <Col xs>
-                        <Icon icon={isPlaying ? 'pause' : 'play'} color='white' />
+                        <Icon icon={isPlaying ? 'pause' : 'play'} color='white' size={14} />
                       </Col>
                       <Col xs>
-                        <Text className='bp3-text-large play-pause-text'>
+                        <Text className='bp3-text-large play-pause-text' style={{ fontSize: '14px' }}>
                           {isPlaying ? t('Pause') : t('Play')}
                         </Text>
                       </Col>
@@ -239,7 +152,7 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                   </Button>
                   <Divider
                     style={{
-                      height: '20px',
+                      height: '16px',
                       borderRight: '1px solid #ffffffa8',
                       borderBottom: '1px solid #ffffffa8',
                     }}
@@ -252,7 +165,7 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                         <Row style={{
                           justifyContent: 'center',
                         }}>
-                          <Tooltip content={t('flip-the-screen-is-pro-version-only')} position={Position.TOP}>
+                          <Tooltip position={Position.TOP}>
                             <span style={{ display: 'block', width: '100%', textAlign: 'center' }}>
                               <Button
                                 icon='key-tab'
@@ -296,15 +209,15 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                     popoverClassName={Classes.POPOVER_CONTENT_SIZING}
                   >
                     <Tooltip content={t('Click to Open Video Settings')} position={Position.BOTTOM}>
-                      <Button minimal>
-                        <Icon icon='cog' color='white' />
+                      <Button minimal style={{ minHeight: '24px' }}>
+                        <Icon icon='cog' color='white' size={14} />
                       </Button>
                     </Tooltip>
                   </Popover>
 
                   <Divider
                     style={{
-                      height: '20px',
+                      height: '16px',
                       borderRight: '1px solid #ffffffa8',
                       borderBottom: '1px solid #ffffffa8',
                     }}
@@ -316,13 +229,14 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                     <Button
                       minimal
                       onClick={handleFullscreenClick}
+                      style={{ minHeight: '24px' }}
                     >
                       <img
                         src={isFullScreenOn ? FullScreenExit : FullScreenEnter}
-                        width={16}
-                        height={16}
+                        width={14}
+                        height={14}
                         style={{
-                          transform: 'scale(1.5) translateY(1px)',
+                          transform: 'scale(1.2) translateY(1px)',
                           filter:
                             'invert(100%) sepia(100%) saturate(0%) hue-rotate(127deg) brightness(107%) contrast(102%)',
                         }}
@@ -346,7 +260,8 @@ function PlayerControlPanel(props: PlayerControlPanelProps) {
                   checked={isDefaultPlayerTurnedOn}
                   disabled={!isFullScreenAPIAvailable}
                   style={{
-                    marginBottom: '12px',
+                    marginBottom: '0',
+                    marginTop: '0',
                   }}
                 />
               </Col>
