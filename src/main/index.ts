@@ -1,11 +1,14 @@
 // override console early to catch all logs
-import { overrideGlobalConsole, startConsoleRateLimiting } from '../common/rateLimitedConsole';
+import {
+	overrideGlobalConsole,
+	startConsoleRateLimiting,
+} from '../common/rateLimitedConsole';
 overrideGlobalConsole();
 startConsoleRateLimiting();
 
 import { app, shell, BrowserWindow, Notification } from 'electron';
 import { join } from 'path';
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { is, optimizer } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 
 // function createWindow(): void {
@@ -94,227 +97,260 @@ import { getDeskreenGlobal } from './helpers/getDeskreenGlobal';
 import { startLogBufferCleanup } from './utils/LoggerWithFilePrefix';
 
 export default class DeskreenApp {
-  mainWindow: BrowserWindow | null = null;
+	mainWindow: BrowserWindow | null = null;
 
-  menuBuilder: MenuBuilder | null = null;
+	menuBuilder: MenuBuilder | null = null;
 
-  latestAppVersion = '';
+	latestAppVersion = '';
 
-  initElectronAppObject(): void {
-    /**
-     * Add event listeners...
-     */
-    app.on('window-all-closed', () => {
-      // TODO: when app will be set to auto start on login, this will be not required,
-      // TODO: the app will run until user didn't kill it in system tray
-      // Respect the OSX convention of having the application in memory even
-      // after all windows have been closed
-      if (process.platform !== 'darwin') {
-        app.quit();
-      }
-    });
+	initElectronAppObject(): void {
+		/**
+		 * Add event listeners...
+		 */
+		app.on('window-all-closed', () => {
+			// TODO: when app will be set to auto start on login, this will be not required,
+			// TODO: the app will run until user didn't kill it in system tray
+			// Respect the OSX convention of having the application in memory even
+			// after all windows have been closed
+			if (process.platform !== 'darwin') {
+				app.quit();
+			}
+		});
 
-    app.whenReady().then(async () => {
-      electronApp.setAppUserModelId('com.deskreen');
+		// ensure window creation happens even if app.whenReady() has already fired
+		const initializeApp = async (): Promise<void> => {
+			app.setAppUserModelId('com.deskreen-ce.app');
+			app.setActivationPolicy('regular');
 
-      // start log buffer cleanup to prevent memory bloat
-      startLogBufferCleanup();
+			// start log buffer cleanup to prevent memory bloat
+			startLogBufferCleanup();
 
-      await this.createWindow();
+			await this.createWindow();
 
-      void this.checkForLatestVersionAndNotify();
-    });
+			void this.checkForLatestVersionAndNotify();
+		};
 
-    app.on('browser-window-created', (_, window) => {
-      optimizer.watchWindowShortcuts(window);
-    });
+		if (app.isReady()) {
+			// app is already ready, initialize immediately
+			void initializeApp();
+		} else {
+			// app is not ready yet, wait for it
+			app.whenReady().then(initializeApp).catch((error) => {
+				console.error('Failed to initialize app:', error);
+			});
+		}
 
-    app.on('activate', (e) => {
-      e.preventDefault();
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (this.mainWindow === null) {
-        this.createWindow();
-      }
-    });
+		app.on('browser-window-created', (_, window) => {
+			optimizer.watchWindowShortcuts(window);
+		});
 
-    app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', '100');
-  }
+		app.on('activate', (e) => {
+			e.preventDefault();
+			// On macOS it's common to re-create a window in the app when the
+			// dock icon is clicked and there are no other windows open.
+			if (this.mainWindow === null) {
+				this.createWindow();
+			}
+		});
 
-  private async checkForLatestVersionAndNotify(): Promise<void> {
-    try {
-      const latestAppVersion = await getNewVersionTag();
-      const deskreenGlobal = getDeskreenGlobal();
-      deskreenGlobal.latestAppVersion = latestAppVersion;
-      this.latestAppVersion = latestAppVersion;
+		app.commandLine.appendSwitch(
+			'webrtc-max-cpu-consumption-percentage',
+			'100',
+		);
+	}
 
-      if (
-        latestAppVersion === '' ||
-        latestAppVersion === deskreenGlobal.currentAppVersion ||
-        !Notification.isSupported()
-      ) {
-        return;
-      }
+	private async checkForLatestVersionAndNotify(): Promise<void> {
+		try {
+			const latestAppVersion = await getNewVersionTag();
+			const deskreenGlobal = getDeskreenGlobal();
+			deskreenGlobal.latestAppVersion = latestAppVersion;
+			this.latestAppVersion = latestAppVersion;
 
-      this.showUpdateNotification(latestAppVersion);
-    } catch (error) {
-      console.error('Failed to check for Deskreen updates', error);
-    }
-  }
+			if (
+				latestAppVersion === '' ||
+				latestAppVersion === deskreenGlobal.currentAppVersion ||
+				!Notification.isSupported()
+			) {
+				return;
+			}
 
-  private showUpdateNotification(latestAppVersion: string): void {
-    const deskreenGlobal = getDeskreenGlobal();
-    const notification = new Notification({
-      title: i18n.t('deskreen-ce-update-is-available'),
-      body: `${i18n.t('your-current-version-is')} ${deskreenGlobal.currentAppVersion} | ${i18n.t(
-        'click-to-download-new-updated-version',
-      )} ${latestAppVersion}`,
-    });
+			this.showUpdateNotification(latestAppVersion);
+		} catch (error) {
+			console.error('Failed to check for Deskreen updates', error);
+		}
+	}
 
-    notification.on('click', () => {
-      void shell.openExternal('https://deskreen.com/download');
-    });
+	private showUpdateNotification(latestAppVersion: string): void {
+		const deskreenGlobal = getDeskreenGlobal();
+		const notification = new Notification({
+			title: i18n.t('deskreen-ce-update-is-available'),
+			body: `${i18n.t('your-current-version-is')} ${deskreenGlobal.currentAppVersion} | ${i18n.t(
+				'click-to-download-new-updated-version',
+			)} ${latestAppVersion}`,
+		});
 
-    notification.show();
-  }
+		notification.on('click', () => {
+			void shell.openExternal('https://deskreen.com/download');
+		});
 
-  async createWindow(): Promise<void> {
-    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
-      await installExtensions();
-    }
+		notification.show();
+	}
 
-    this.mainWindow = new BrowserWindow({
-      show: false,
-      width: 940,
-      height: 640,
-      minHeight: 460,
-      minWidth: 640,
-      titleBarStyle: 'hiddenInset',
-      frame: process.platform === 'darwin' ? false : true,
-      useContentSize: true,
-		  title: 'Deskreen CE',
-      // useContentSize: true,
-      autoHideMenuBar: true,
-      ...(process.platform === 'linux' ? { icon } : {}),
-      webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
-        sandbox: false,
-      },
-    });
+	async createWindow(): Promise<void> {
+		if (
+			process.env.NODE_ENV === 'development' ||
+			process.env.DEBUG_PROD === 'true'
+		) {
+			await installExtensions();
+		}
 
-    // this.mainWindow.loadURL(`file://${__dirname}/app.html`);
+		this.mainWindow = new BrowserWindow({
+			show: false,
+			width: 940,
+			height: 640,
+			minHeight: 460,
+			minWidth: 640,
+			titleBarStyle: 'hiddenInset',
+			frame: process.platform === 'darwin' ? false : true,
+			useContentSize: true,
+			title: 'Deskreen CE',
+			// useContentSize: true,
+			autoHideMenuBar: true,
+			...(process.platform === 'linux' ? { icon } : {}),
+			webPreferences: {
+				preload: join(__dirname, '../preload/index.js'),
+				sandbox: false,
+			},
+		});
 
-    // @TODO: Use 'ready-to-show' event
-    //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
-    this.mainWindow.on('ready-to-show', () => {
-      // this.mainWindow.webContents.on('did-finish-load', () => {
-      if (!this.mainWindow) {
-        throw new Error('"mainWindow" is not defined');
-      }
-      if (process.env.START_MINIMIZED === 'true') {
-        this.mainWindow.minimize();
-      } else {
-        this.mainWindow.show();
-        this.mainWindow.focus();
-      }
-      // });
-    });
+		// this.mainWindow.loadURL(`file://${__dirname}/app.html`);
 
-    this.mainWindow.webContents.setWindowOpenHandler((details) => {
-      shell.openExternal(details.url);
-      return { action: 'deny' };
-    });
+		// @TODO: Use 'ready-to-show' event
+		//        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
+		this.mainWindow.on('ready-to-show', () => {
+			// this.mainWindow.webContents.on('did-finish-load', () => {
+			if (!this.mainWindow) {
+				throw new Error('"mainWindow" is not defined');
+			}
+			if (process.env.START_MINIMIZED === 'true') {
+				this.mainWindow.minimize();
+			} else {
+				this.mainWindow.show();
+				this.mainWindow.focus();
+			}
+			// });
+		});
 
-    // HMR for renderer base on electron-vite cli.
-    // Load the remote URL for development or the local html file for production.
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      this.mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-    } else {
-      this.mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-    }
+		this.mainWindow.webContents.setWindowOpenHandler((details) => {
+			shell.openExternal(details.url);
+			return { action: 'deny' };
+		});
 
-    this.mainWindow.on('closed', () => {
-      this.mainWindow = null;
-      // TODO: when app will be set to auto start on login, this will be not required,
-      // TODO: the app will run until user didn't kill it in system tray
-      if (process.platform !== 'darwin') {
-        app.quit();
-      }
-    });
+		// HMR for renderer base on electron-vite cli.
+		// Load the remote URL for development or the local html file for production.
+		if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+			this.mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+		} else {
+			this.mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+		}
 
-    if (process.env.NODE_ENV === 'dev') {
-      this.mainWindow.webContents.toggleDevTools();
-    }
+		this.mainWindow.on('closed', () => {
+			this.mainWindow = null;
+			// TODO: when app will be set to auto start on login, this will be not required,
+			// TODO: the app will run until user didn't kill it in system tray
+			if (process.platform !== 'darwin') {
+				app.quit();
+			}
+		});
 
-    this.menuBuilder = new MenuBuilder(this.mainWindow, i18n);
-    this.menuBuilder.buildMenu();
+		if (process.env.NODE_ENV === 'dev') {
+			this.mainWindow.webContents.toggleDevTools();
+		}
 
-    this.initI18n();
+		this.menuBuilder = new MenuBuilder(this.mainWindow, i18n);
+		this.menuBuilder.buildMenu();
 
-    initIpcMainHandlers(this.mainWindow);
-  }
+		this.initI18n();
 
-  initI18n(): void {
-    i18n.on('loaded', () => {
-      i18n.changeLanguage('en');
-      i18n.off('loaded');
-    });
+		initIpcMainHandlers(this.mainWindow);
+	}
 
-    i18n.on('languageChanged', (lng) => {
-      if (this.mainWindow === null) return;
-      this.menuBuilder = new MenuBuilder(this.mainWindow, i18n);
-      this.menuBuilder.buildMenu();
-      setTimeout(async () => {
-        if (lng !== 'en' && i18n.language !== lng) {
-          i18n.changeLanguage(lng);
-          if (store.has(ElectronStoreKeys.AppLanguage)) {
-            store.delete(ElectronStoreKeys.AppLanguage);
-          }
-          store.set(ElectronStoreKeys.AppLanguage, lng);
-        }
-      }, 400);
-    });
-  }
+	initI18n(): void {
+		i18n.on('loaded', () => {
+			i18n.changeLanguage('en');
+			i18n.off('loaded');
+		});
 
-  start(): void {
-    // ensure only one instance of the app can run
-    const gotTheLock = app.requestSingleInstanceLock();
+		i18n.on('languageChanged', (lng) => {
+			if (this.mainWindow === null) return;
+			this.menuBuilder = new MenuBuilder(this.mainWindow, i18n);
+			this.menuBuilder.buildMenu();
+			setTimeout(async () => {
+				if (lng !== 'en' && i18n.language !== lng) {
+					i18n.changeLanguage(lng);
+					if (store.has(ElectronStoreKeys.AppLanguage)) {
+						store.delete(ElectronStoreKeys.AppLanguage);
+					}
+					store.set(ElectronStoreKeys.AppLanguage, lng);
+				}
+			}, 400);
+		});
+	}
 
-    if (!gotTheLock) {
-      // another instance is already running, quit this one
-      app.quit();
-      return;
-    }
+	start(): void {
+		// ensure only one instance of the app can run
+		const gotTheLock = app.requestSingleInstanceLock();
 
-    // handle second instance attempts (e.g., clicking taskbar icon on windows)
-    app.on('second-instance', () => {
-      if (this.mainWindow) {
-        if (this.mainWindow.isMinimized()) {
-          this.mainWindow.restore();
-        }
-        this.mainWindow.focus();
-        this.mainWindow.show();
-      }
-    });
+		if (!gotTheLock) {
+			// another instance is already running, quit this one
+			app.quit();
+			return;
+		}
 
-    const cliLocalIp = this.parseCliLocalIp();
-    initGlobals(join(__dirname, '..'), cliLocalIp);
-    signalingServer.start();
+		// handle second instance attempts (e.g., clicking taskbar icon on windows)
+		app.on('second-instance', () => {
+			if (this.mainWindow) {
+				if (this.mainWindow.isMinimized()) {
+					this.mainWindow.restore();
+				}
+				this.mainWindow.focus();
+				this.mainWindow.show();
+			} else {
+				// window was never created or was closed, create it now
+				if (app.isReady()) {
+					void this.createWindow();
+				} else {
+					app.whenReady().then(() => {
+						void this.createWindow();
+					});
+				}
+			}
+		});
 
-    this.initElectronAppObject();
-  }
+		const cliLocalIp = this.parseCliLocalIp();
+		initGlobals(join(__dirname, '..'), cliLocalIp);
+		
+		// start signaling server with error handling to prevent unhandled promise rejections
+		void signalingServer.start().catch((error) => {
+			console.error('Failed to start signaling server:', error);
+		});
 
-  private parseCliLocalIp(): string | undefined {
-    const args = process.argv;
-    const localIpIndex = args.findIndex((arg) => arg === '--local-ip' || arg === '--ip');
-    if (localIpIndex !== -1 && localIpIndex + 1 < args.length) {
-      const ip = args[localIpIndex + 1];
-      if (ip && !ip.startsWith('--')) {
-        return ip;
-      }
-    }
-    return undefined;
-  }
+		this.initElectronAppObject();
+	}
+
+	private parseCliLocalIp(): string | undefined {
+		const args = process.argv;
+		const localIpIndex = args.findIndex(
+			(arg) => arg === '--local-ip' || arg === '--ip',
+		);
+		if (localIpIndex !== -1 && localIpIndex + 1 < args.length) {
+			const ip = args[localIpIndex + 1];
+			if (ip && !ip.startsWith('--')) {
+				return ip;
+			}
+		}
+		return undefined;
+	}
 }
 
 export const deskreenApp = new DeskreenApp();
