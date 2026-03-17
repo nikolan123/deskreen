@@ -102,6 +102,8 @@ jobs:
           if [ -f dist/latest-mac.yml ]; then
             mv dist/latest-mac.yml dist/latest-${{ matrix.build_name }}.yml
           fi
+          # Remove builder-debug.yml to avoid conflicts
+          rm -f dist/builder-debug.yml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -119,11 +121,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
 
       - name: Get commit info
         id: commit_info
@@ -159,12 +156,22 @@ jobs:
           **Date:** ${{ steps.commit_info.outputs.date }}
           EOF
           
-          # Collect files to upload, excluding builder-debug.yml
-          FILES=$(find artifacts -type f \( -name "*.AppImage" -o -name "*.rpm" -o -name "*.deb" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.blockmap" -o -name "latest-*.yml" \) | tr '\n' ' ')
-          
           gh release create nightly \
             --title "Nightly Build (${{ steps.commit_info.outputs.short }})" \
             --notes-file release_notes.md \
-            --prerelease \
-            $FILES
+            --prerelease
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload binaries to release
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "artifacts/*/*.{AppImage,rpm,deb,msi,exe,dmg,zip,blockmap,yml}"
+          tag_name: nightly
+          draft: false
 
