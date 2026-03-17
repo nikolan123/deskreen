@@ -153,7 +153,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat > release_notes.md << 'EOF'
+          cat > release_notes.md << EOF
           **Commit:** ${{ steps.commit_info.outputs.sha }}
           **Author:** ${{ steps.commit_info.outputs.author }}
           **Date:** ${{ steps.commit_info.outputs.date }}
@@ -163,5 +163,5 @@ jobs:
             --title "Nightly Build (${{ steps.commit_info.outputs.short }})" \
             --notes-file release_notes.md \
             --prerelease \
-            artifacts/**/*
+            artifacts/*/*.{AppImage,rpm,deb,msi,exe,dmg,blockmap,yml}
 
