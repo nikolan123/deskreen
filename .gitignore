@@ -15,3 +15,5 @@ tsconfig.web.tsbuildinfo
 src/client-viewer/.env
 
 AGENTS.md
+UPSTREAM_CHANGES.md
+.vscode
