@@ -159,9 +159,12 @@ jobs:
           **Date:** ${{ steps.commit_info.outputs.date }}
           EOF
           
+          # Collect files to upload, excluding builder-debug.yml
+          FILES=$(find artifacts -type f \( -name "*.AppImage" -o -name "*.rpm" -o -name "*.deb" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.blockmap" -o -name "latest-*.yml" \) | tr '\n' ' ')
+          
           gh release create nightly \
             --title "Nightly Build (${{ steps.commit_info.outputs.short }})" \
             --notes-file release_notes.md \
             --prerelease \
-            artifacts/*/*.{AppImage,rpm,deb,msi,exe,dmg,blockmap,yml}
+            $FILES
 
