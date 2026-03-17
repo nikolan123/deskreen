@@ -26,23 +26,28 @@ export default async function handlePeerOnData(
 			60,
 		);
 		const newVideoTrack = newStream.getVideoTracks()[0];
-		const oldStream = peerConnection.localStream;
-		const oldTrack = oldStream?.getVideoTracks()[0];
+		
+		// Always use the original stream that was added to the peer connection
+		const streamToModify = peerConnection.localStream;
+		const oldTrack = streamToModify?.getVideoTracks()[0];
 
-		if (oldTrack && oldStream && peerConnection.peer !== NullSimplePeer) {
-			await peerConnection.peer.replaceTrack(oldTrack, newVideoTrack, oldStream);
-			// stop only the old track (it's already removed from the stream by replaceTrack)
+		if (oldTrack && streamToModify && peerConnection.peer !== NullSimplePeer) {
+			await peerConnection.peer.replaceTrack(oldTrack, newVideoTrack, streamToModify);
+			
+			// Remove old track from the stream and add new track
+			streamToModify.removeTrack(oldTrack);
+			streamToModify.addTrack(newVideoTrack);
+			
+			// Stop the old track
 			oldTrack.stop();
-			// stop any remaining tracks in the old stream, but don't stop the new track
-			oldStream.getTracks().forEach((track) => {
+			
+			// Stop any other tracks from the new stream (we only need the video track)
+			newStream.getTracks().forEach((track) => {
 				if (track.id !== newVideoTrack.id) {
 					track.stop();
 				}
 			});
 		}
-
-		// update local stream reference to new stream
-		peerConnection.localStream = newStream;
 	}
 
 	if (dataJSON.type === 'get_sharing_source_type') {
