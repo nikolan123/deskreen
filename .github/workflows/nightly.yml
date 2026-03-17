@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.build_name }}
-          path: ${{ matrix.artifact_name }}
+          path: dist/
           retention-days: 7
 
   create-nightly-release:
