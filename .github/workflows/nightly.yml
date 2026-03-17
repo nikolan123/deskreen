@@ -1,0 +1,167 @@
+on:
+  push:
+  workflow_dispatch:
+
+name: Nightly Build
+
+permissions:
+  contents: write
+
+jobs:
+  nightly:
+    name: Nightly (${{ matrix.build_name }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            build_name: linux-x64
+            build_command: pnpm build:linux
+            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
+          - os: ubuntu-latest
+            platform: linux
+            build_name: linux-arm64
+            build_command: pnpm build:linux:arm64
+            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
+          - os: ubuntu-latest
+            platform: linux
+            build_name: linux-arm32
+            build_command: pnpm build:linux:armv7l
+            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
+          - os: windows-latest
+            platform: windows
+            build_name: windows-amd64
+            build_command: pnpm build:win
+            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
+          - os: windows-latest
+            platform: windows
+            build_name: windows-amd32
+            build_command: pnpm build:win:ia32
+            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
+          - os: windows-latest
+            platform: windows
+            build_name: windows-arm64
+            build_command: pnpm build:win:arm64
+            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
+          - os: macos-latest
+            platform: macos
+            build_name: macos-arm64
+            build_command: pnpm build:mac:arm64
+            artifact_name: 'dist/{*.dmg,*.blockmap,*.yml}'
+          - os: macos-15-intel
+            platform: macos
+            build_name: macos-intel
+            build_command: pnpm build:mac:x64
+            artifact_name: 'dist/{*.dmg,*.blockmap,*.yml}'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: pnpm install in ./src/client-viewer
+        run: |
+          cd ./src/client-viewer
+          pnpm install
+
+      - name: pnpm install in ./
+        run: pnpm install
+
+      - name: Install Linux build dependencies
+        if: ${{ matrix.platform == 'linux' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: ${{ matrix.build_command }}
+
+      - name: Rename update manifests
+        shell: bash
+        run: |
+          if [ -f dist/latest-linux.yml ]; then
+            mv dist/latest-linux.yml dist/latest-${{ matrix.build_name }}.yml
+          fi
+          if [ -f dist/latest.yml ]; then
+            mv dist/latest.yml dist/latest-${{ matrix.build_name }}.yml
+          fi
+          if [ -f dist/latest-mac.yml ]; then
+            mv dist/latest-mac.yml dist/latest-${{ matrix.build_name }}.yml
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build_name }}
+          path: ${{ matrix.artifact_name }}
+          retention-days: 7
+
+  create-nightly-release:
+    name: Create Nightly Release
+    needs: nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get commit info
+        id: commit_info
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
+          COMMIT_DATE=$(git log -1 --pretty=format:'%ci')
+          echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "short=$COMMIT_SHORT" >> $GITHUB_OUTPUT
+          echo "msg<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+          echo "date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+
+      - name: Delete existing nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view nightly >/dev/null 2>&1; then
+            gh release delete nightly --yes --cleanup-tag
+          fi
+
+      - name: Create nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > release_notes.md << 'EOF'
+          **Commit:** ${{ steps.commit_info.outputs.sha }}
+          **Author:** ${{ steps.commit_info.outputs.author }}
+          **Date:** ${{ steps.commit_info.outputs.date }}
+          EOF
+          
+          gh release create nightly \
+            --title "Nightly Build (${{ steps.commit_info.outputs.short }})" \
+            --notes-file release_notes.md \
+            --prerelease \
+            artifacts/**/*
+
