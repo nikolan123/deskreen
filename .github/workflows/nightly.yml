@@ -105,6 +105,13 @@ jobs:
           # Remove builder-debug.yml to avoid conflicts
           rm -f dist/builder-debug.yml
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.build_name }}
+          path: dist/
+          retention-days: 7
+
   create-nightly-release:
     name: Create Nightly Release
     needs: nightly
