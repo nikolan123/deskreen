@@ -6,6 +6,7 @@ name: Nightly Build
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   nightly:
@@ -19,42 +20,34 @@ jobs:
             platform: linux
             build_name: linux-x64
             build_command: pnpm build:linux
-            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
           - os: ubuntu-latest
             platform: linux
             build_name: linux-arm64
             build_command: pnpm build:linux:arm64
-            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
           - os: ubuntu-latest
             platform: linux
             build_name: linux-arm32
             build_command: pnpm build:linux:armv7l
-            artifact_name: 'dist/{*.AppImage,*.rpm,*.deb,*.yml}'
           - os: windows-latest
             platform: windows
             build_name: windows-amd64
             build_command: pnpm build:win
-            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
           - os: windows-latest
             platform: windows
             build_name: windows-amd32
             build_command: pnpm build:win:ia32
-            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
           - os: windows-latest
             platform: windows
             build_name: windows-arm64
             build_command: pnpm build:win:arm64
-            artifact_name: 'dist/{*.msi,*.exe,*.blockmap,*.yml}'
           - os: macos-latest
             platform: macos
             build_name: macos-arm64
             build_command: pnpm build:mac:arm64
-            artifact_name: 'dist/{*.dmg,*.blockmap,*.yml}'
           - os: macos-15-intel
             platform: macos
             build_name: macos-intel
             build_command: pnpm build:mac:x64
-            artifact_name: 'dist/{*.dmg,*.blockmap,*.yml}'
 
     steps:
       - name: Checkout code
@@ -105,12 +98,14 @@ jobs:
           # Remove builder-debug.yml to avoid conflicts
           rm -f dist/builder-debug.yml
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload binaries to release
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: ${{ matrix.build_name }}
-          path: dist/
-          retention-days: 7
+          file: "dist/*.{AppImage,rpm,deb,msi,exe,dmg,zip,blockmap,yml}"
+          tag_name: nightly
+          draft: false
 
   create-nightly-release:
     name: Create Nightly Release
@@ -155,23 +150,28 @@ jobs:
           **Author:** ${{ steps.commit_info.outputs.author }}
           **Date:** ${{ steps.commit_info.outputs.date }}
           EOF
-          
+
           gh release create nightly \
             --title "Nightly Build (${{ steps.commit_info.outputs.short }})" \
             --notes-file release_notes.md \
             --prerelease
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Upload binaries to release
-        uses: xresloader/upload-to-github-release@v1
+  cleanup-workflow-logs:
+    name: Cleanup Workflow Logs
+    needs:
+      - create-nightly-release
+      - nightly
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete workflow run logs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          file: "artifacts/*/*.{AppImage,rpm,deb,msi,exe,dmg,zip,blockmap,yml}"
-          tag_name: nightly
-          draft: false
-
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          gh api \
+            --method DELETE \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/$GH_REPO/actions/runs/$RUN_ID/logs"
